@@ -33,15 +33,42 @@ def import_data(connection, file_name):
                 pair = row[1]
                 base = pair[3:]
                 target = pair[:3]
-                print('base: ', base, ' target: ', target)
                 cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5]))
+                row_num += 1
             connection.commit()
+            print((row_num - 2), 'records imported.')
+
+def validate_currency(connection, currency):
+    with connection.cursor() as cursor:
+        sql = 'SELECT `abbrev` FROM `currencies`'
+        cursor.execute(sql)
+        currencies = cursor.fetchall()
+        for curr in currencies:
+            if curr == currency:
+                return True
+        return False
 
 def clear_data(connection):
     with connection.cursor() as cursor:
         sql = 'TRUNCATE TABLE `price_history`'
         cursor.execute(sql)
         connection.commit()
+
+def menu_prompt():
+    prompt = '\nWelcome to CryptoTracker. What would you like to do?\n\n'
+    prompt += '1. Create\Check\Delete price watch\n'
+    prompt += '2. Create\Check\Delete whale watch\n'
+    prompt += '3. View information about a currency\n'
+    prompt += '4. Enter a trade\n'
+    prompt += '5. Exit\n'
+
+    print(prompt)
+    answer = int(input('Please enter the number of the menu option you wish to complete: '))
+
+    while (answer < 1 or answer > 5):
+        print('\nInvalid input. Please try again.')
+        print(prompt)
+        answer = int(input('Please enter the number of the menu option you wish to complete: '))
 
 
 def main():
@@ -60,6 +87,8 @@ def main():
     # Import all data files
     for filename in os.listdir('./data/'):
         import_data(conn, './data/' + filename)
+
+    menu_prompt()
 
     conn.close()
     return 0
