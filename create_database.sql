@@ -10,3 +10,13 @@ CREATE TABLE IF NOT EXISTS price_history (
     day_close  INT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS currencies (
+    abbrev VARCHAR(5) PRIMARY KEY,
+    name   VARCHAR(64)
+);
+
+CREATE TABLE IF NOT EXISTS exchanges (
+    name    VARCHAR(256) PRIMARY KEY,
+    website VARCHAR(256),
+    country VARCHAR(256)
+);
