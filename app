@@ -29,8 +29,12 @@ def import_data(connection, file_name):
                     row_num += 1
                     continue
                 # Create a new record
-                sql = 'INSERT INTO `price_history` (`price_date`, `high`, `low`, `day_open`, `day_close`) VALUES (%s, %s, %s, %s, %s)'
-                cursor.execute(sql, (row[0], row[3], row[4], row[2], row[5]))
+                sql = 'INSERT INTO `price_history` (`price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+                pair = row[1]
+                base = pair[3:]
+                target = pair[:3]
+                print('base: ', base, ' target: ', target)
+                cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5]))
             connection.commit()
 
 def clear_data(connection):
@@ -51,6 +55,8 @@ def main():
         print('Invalid credentials.')
         return 0
 
+    # Clear any current price history data
+    clear_data(conn)
     # Import all data files
     for filename in os.listdir('./data/'):
         import_data(conn, './data/' + filename)
