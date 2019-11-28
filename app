@@ -78,6 +78,7 @@ def create_price_watch(conn):
 
     valid = False
 
+    # Get required info from user
     while not valid:
         base = input('Please enter the base currency (currency that the target currency will be denominated in): ')
         target = input('Please enter the target currency (currency you want to watch): ')
@@ -96,6 +97,20 @@ def create_price_watch(conn):
         cursor.execute(sql, (user_id, base, target, base_amount, target_amount, 0))
         conn.commit()
         print('Successfully added price watch.')
+
+def check_price_watches(conn):
+    user_name = input('Please enter your name: ')
+    user_id = get_user_id_from_name(conn, user_name)
+
+    sql = 'SELECT `base_currency`, `base_amount`, `target_currency`, `target_amount` FROM `price_watch` WHERE `watcher_id` = %s AND `criteria_met` = 1'
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id))
+        results = cursor.fetchall()
+        if results:
+            print('Activated price watches:')
+            print(*results)
+        else:
+            print('No price watches were activated')
 
 
 def menu_prompt(conn):
@@ -127,6 +142,9 @@ def menu_prompt(conn):
                 print('\nInvalid input. Please try again.')
         if sub_answer == 1:
             create_price_watch(conn)
+            return False
+        elif sub_answer == 2:
+            check_price_watches(conn)
             return False
     elif answer == 5:
         return True
