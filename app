@@ -48,8 +48,10 @@ def validate_currency(connection, currency):
         cursor.execute(sql)
         currencies = cursor.fetchall()
         for curr in currencies:
-            if curr['abbrev'] == currency or curr['name'] == currency:
-                return True
+            if curr['abbrev'].lower() == currency.lower():
+                return True, curr['abbrev']
+            elif curr['name'].lower() == currency.lower():
+                return True, curr['name']
         return False
 
 def clear_data(connection):
@@ -85,13 +87,18 @@ def create_price_watch(conn):
         base_amount = int(input('Please enter the base currency amount: '))
         target_amount = input('Please enter the target amount (default 1): ')
         target_amount = 1 if not target_amount else int(target_amount)
-        valid_base = validate_currency(conn, base)
-        valid_target = validate_currency(conn, target)
+
+        valid_base, stored_base = validate_currency(conn, base)
+        valid_target, stored_targ = validate_currency(conn, target)
         valid_base_amt = base_amount > 0
         valid_target_amt = target_amount > 0
         valid = valid_base and valid_target and valid_base_amt and valid_target_amt
         if not valid:
             print('Invalid values received. Please try again.')
+        else:
+            # Use stored values to prevent capitalization errors
+            base = stored_base
+            target = stored_targ
     sql = 'INSERT INTO `price_watch` (`watcher_id`, `base_currency`, `target_currency`, `base_amount`, `target_amount`, `criteria_met`) VALUES (%s, %s, %s, %s, %s, %s)'
     with conn.cursor() as cursor:
         cursor.execute(sql, (user_id, base, target, base_amount, target_amount, 0))
@@ -120,14 +127,15 @@ def menu_prompt(conn):
     prompt += '3. View information about a currency\n'
     prompt += '4. Enter a trade\n'
     prompt += '5. Exit\n'
+    prompt += 'Please enter the number of the menu option you wish to complete: \n'
 
     print(prompt)
-    answer = int(input('Please enter the number of the menu option you wish to complete: '))
+    answer = int(input('> '))
 
     while answer < 1 or answer > 5:
         print('\nInvalid input. Please try again.')
         print(prompt)
-        answer = int(input('Please enter the number of the menu option you wish to complete: '))
+        answer = int(input('> '))
 
     if answer == 1:
         sub_answer = 0
