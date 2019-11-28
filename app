@@ -35,6 +35,7 @@ def import_data(connection, file_name):
                 # Create a new record
                 sql = 'INSERT INTO `price_history` (`price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
                 pair = row[1]
+                # TODO not all currencies will be 3 letter abbrevs, figure out a way to fix
                 base = pair[3:]
                 target = pair[:3]
                 cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5]))
@@ -212,7 +213,10 @@ def main():
     for filename in os.listdir('./data/'):
         import_data(conn, './data/' + filename)
 
+    # Clear screen
     os.system('cls' if os.name == 'nt' else 'clear')
+
+    # Keep prompting user actions until they select exit
     should_exit = menu_prompt(conn)
     while not should_exit:
         should_exit = menu_prompt(conn)
