@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS price_watch (
     target_currency VARCHAR(10) NOT NULL,
     base_amount     INT NOT NULL,
     target_amount   INT NOT NULL DEFAULT 1,
+    criteria_met    TINYINT(1) DEFAULT 0,
     CONSTRAINT watch_user_fk FOREIGN KEY (watcher_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT watch_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT watch_target_fk FOREIGN KEY (target_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
