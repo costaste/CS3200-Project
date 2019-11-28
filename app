@@ -119,6 +119,39 @@ def check_price_watches(conn):
         else:
             print('No price watches were activated')
 
+def delete_price_watch(conn):
+    user_name = input('Please enter your name: ')
+    user_id = get_user_id_from_name(conn, user_name)
+
+    sql = 'SELECT `id`, `base_currency`, `base_amount`, `target_currency`, `target_amount` FROM `price_watch` WHERE `watcher_id` = %s'
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id))
+        results = cursor.fetchall()
+        if results:
+            curr_idx = 1
+            idx_to_id = {}
+            for r in results:
+                watch_id = r.pop('id', None)
+                idx_to_id[curr_idx] = watch_id
+                print(str(curr_idx) + ':', r)
+                curr_idx += 1
+
+            print('\nEnter number of price watch to delete, or 0 for all')
+            answer = int(input('> '))
+            while answer < 0 or answer > curr_idx:
+                print('Invalid input. Please try again.')
+                answer = int(input('> '))
+            if answer == 0:
+                id_to_delete = user_id
+                sql = 'DELETE FROM `price_watch` WHERE `watcher_id` = %s'
+            else:
+                id_to_delete = idx_to_id[answer]
+                sql = 'DELETE FROM `price_watch` WHERE `id` = %s'
+            cursor.execute(sql, (id_to_delete))
+            conn.commit()
+            print('Successfully deleted price watch')
+        else:
+            print('\nNo price watches found')
 
 def menu_prompt(conn):
     prompt = '\nWelcome to CryptoTracker. What would you like to do?\n\n'
@@ -153,6 +186,9 @@ def menu_prompt(conn):
             return False
         elif sub_answer == 2:
             check_price_watches(conn)
+            return False
+        else:
+            delete_price_watch(conn)
             return False
     elif answer == 5:
         return True
