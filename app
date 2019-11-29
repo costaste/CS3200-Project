@@ -72,6 +72,30 @@ def get_user_id_from_name(conn, name):
             return int(result[key])
         return -1
 
+def create_whale_watch(conn):
+    user_name = input('Please enter your name: ')
+    user_id = get_user_id_from_name(conn, user_name)
+
+    valid = False
+
+    # Get required info from user
+    while not valid:
+        currency = input('Please enter the currency to whale watch: ')
+        alert_amt = int(input('Please enter the alert limit for the whale watch: '))
+        valid_curr, stored_curr = validate_currency(conn, currency)
+        valid_alert = alert_amt > 0
+        valid = valid_curr and valid_alert
+        if not valid:
+            print('Invalid values received. Please try again.')
+        else:
+            # Use stored values to prevent capitalization errors
+            currency = stored_curr
+    sql = 'CALL create_whale_watch(%s, %s, %s)'
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id, currency, alert_amt))
+        conn.commit()
+        print('Successfully added whale watch.')
+
 def create_price_watch(conn):
     user_name = input('Please enter your name: ')
     user_id = get_user_id_from_name(conn, user_name)
@@ -99,6 +123,20 @@ def create_price_watch(conn):
         cursor.execute(sql, (user_id, base, target, base_amount))
         conn.commit()
         print('Successfully added price watch.')
+
+def check_whale_watches(conn):
+    user_name = input('Please enter your name: ')
+    user_id = get_user_id_from_name(conn, user_name)
+
+    sql = 'SELECT `currency`, `alert_amount` FROM `whale_watch` WHERE `watcher_id` = %s AND `criteria_met` = 1'
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id))
+        results = cursor.fetchall()
+        if results:
+            print('\nActivated whale watches:')
+            print(*results)
+        else:
+            print('\nNo whale watches were activated')
 
 def check_price_watches(conn):
     user_name = input('Please enter your name: ')
@@ -148,6 +186,40 @@ def delete_price_watch(conn):
         else:
             print('\nNo price watches found')
 
+def delete_whale_watch(conn):
+    user_name = input('Please enter your name: ')
+    user_id = get_user_id_from_name(conn, user_name)
+
+    sql = 'SELECT `id`, `currency`, `alert_amount` FROM `whale_watch` WHERE `watcher_id` = %s'
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id))
+        results = cursor.fetchall()
+        if results:
+            curr_idx = 1
+            idx_to_id = {}
+            for r in results:
+                watch_id = r.pop('id', None)
+                idx_to_id[curr_idx] = watch_id
+                print(str(curr_idx) + ':', r)
+                curr_idx += 1
+
+            print('\nEnter number of whale watch to delete, or 0 for all')
+            answer = int(input('> '))
+            while answer < 0 or answer > curr_idx:
+                print('Invalid input. Please try again.')
+                answer = int(input('> '))
+            if answer == 0:
+                id_to_delete = user_id
+                sql = 'DELETE FROM `whale_watch` WHERE `watcher_id` = %s'
+            else:
+                id_to_delete = idx_to_id[answer]
+                sql = 'DELETE FROM `whale_watch` WHERE `id` = %s'
+            cursor.execute(sql, (id_to_delete))
+            conn.commit()
+            print('Successfully deleted whale watch')
+        else:
+            print('\nNo whale watches found')
+
 def watch_sub_prompt(conn, funcs):
     sub_answer = 0
     while sub_answer < 1 or sub_answer > 3:
@@ -189,6 +261,9 @@ def menu_prompt(conn):
 
     if answer == 1:
         funcs = {'create': globals()['create_price_watch'], 'check': globals()['check_price_watches'], 'delete': globals()['delete_price_watch']}
+        return watch_sub_prompt(conn, funcs)
+    elif answer == 2:
+        funcs = {'create': globals()['create_whale_watch'], 'check': globals()['check_whale_watches'], 'delete': globals()['delete_whale_watch']}
         return watch_sub_prompt(conn, funcs)
     elif answer == 5:
         return True

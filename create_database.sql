@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS CryptoTracker;
 USE CryptoTracker;
 
+-- TABLES ---------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS currencies (
     abbrev VARCHAR(10) PRIMARY KEY,
@@ -38,10 +39,22 @@ CREATE TABLE IF NOT EXISTS price_watch (
     target_currency VARCHAR(10) NOT NULL,
     base_amount     INT NOT NULL,
     criteria_met    TINYINT(1) DEFAULT 0,
-    CONSTRAINT watch_user_fk FOREIGN KEY (watcher_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT watch_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT watch_target_fk FOREIGN KEY (target_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
+    CONSTRAINT pwatch_user_fk FOREIGN KEY (watcher_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT pwatch_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT pwatch_target_fk FOREIGN KEY (target_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS whale_watch (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    watcher_id   INT NOT NULL,
+    currency     VARCHAR(10) NOT NULL,
+    alert_amount INT NOT NULL,
+    criteria_met TINYINT(1) DEFAULT 0,
+    CONSTRAINT wwatch_user_fk FOREIGN KEY (watcher_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT wwatch_curr_fk FOREIGN KEY (currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- DATA -----------------------------------------------------------------------
 
 -- Insert some starting currencies
 INSERT INTO currencies (abbrev, name) VALUES
@@ -53,6 +66,8 @@ INSERT INTO currencies (abbrev, name) VALUES
     ('XRP', 'Ripple'),
     ('LTC', 'Litecoin'),
     ('XMR', 'Monero');
+
+-- PROCEDURES/FUNCTIONS/TRIGGERS ----------------------------------------------
 
 DELIMITER //
 CREATE PROCEDURE write_price_history(
@@ -125,6 +140,27 @@ BEGIN
         base,
         target,
         base_amount,
+        0
+    );
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE create_whale_watch(
+    IN user_id      INT,
+    IN currency     VARCHAR(10),
+    IN alert_amount INT
+)
+BEGIN
+    INSERT INTO `whale_watch` (
+        `watcher_id`,
+        `currency`,
+        `alert_amount`,
+        `criteria_met`
+    ) VALUES (
+        user_id,
+        currency,
+        alert_amount,
         0
     );
 END//
