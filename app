@@ -11,7 +11,9 @@ from watches import WatchType, watch_sub_prompt
 SERVER = 'localhost'
 DB     = 'cryptotracker'
 
-# TODO replace sql with procedures/funcs/triggers
+# TODO
+#   - replace sql with procedures/funcs/triggers (partially done)
+#   - menu options 3 & 4
 # NOTES:
 #   - can use a trigger to set price watch criteria_met to 1
 
