@@ -49,7 +49,7 @@ def import_data(connection, file_name):
 
 def clear_data(connection):
     with connection.cursor() as cursor:
-        sql = 'TRUNCATE TABLE `price_history`'
+        sql = 'CALL clear_price_history()'
         cursor.execute(sql)
         connection.commit()
 

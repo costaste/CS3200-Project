@@ -1,6 +1,6 @@
 def validate_currency(connection, currency):
     with connection.cursor() as cursor:
-        sql = 'SELECT * FROM `currencies`'
+        sql = 'CALL get_currencies()'
         cursor.execute(sql)
         currencies = cursor.fetchall()
         for curr in currencies:

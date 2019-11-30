@@ -101,6 +101,20 @@ END//
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE clear_price_history()
+BEGIN
+    TRUNCATE TABLE `price_history`;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_currencies()
+BEGIN
+    SELECT * FROM `currencies`;
+END//
+DELIMITER ;
+
+DELIMITER //
 CREATE FUNCTION get_user_id(
     user_name VARCHAR(256)
 )
@@ -193,5 +207,64 @@ BEGIN
     ELSE
         return 1;
     END IF;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_activated_price_watches(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `base_currency`, `base_amount`, `target_currency`
+    FROM `price_watch`
+    WHERE `watcher_id` = watcher_id AND `criteria_met` = 1;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_activated_whale_watches(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `currency`, `alert_amount`
+    FROM `whale_watch`
+    WHERE `watcher_id` = watcher_id AND `criteria_met` = 1;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_price_watches_for_user(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `id`, `base_currency`, `base_amount`, `target_currency`
+    FROM `price_watch`
+    WHERE `watcher_id` = watcher_id;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_whale_watches_for_user(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `id`, `currency`, `alert_amount`
+    FROM `whale_watch`
+    WHERE `watcher_id` = watcher_id;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE delete_watches(
+    IN id INT,
+    IN table_name VARCHAR(64),
+    IN id_type VARCHAR(64)
+)
+BEGIN
+    SET @sql_text = CONCAT('DELETE FROM ', table_name, ' WHERE ', id_type, ' = ', id);
+
+    PREPARE stmt FROM @sql_text;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 END//
 DELIMITER ;

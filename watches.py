@@ -37,7 +37,7 @@ def __create_watch(conn, watch):
     while not valid:
         if watch == WatchType.PRICE:
             valid, inputs = __price_input(conn)
-            sql = 'CALL create_price_watch(%s, %s, %s, %s, %s)'
+            sql = 'CALL create_price_watch(%s, %s, %s, %s)'
         else:
             valid, inputs = __whale_input(conn)
             sql = 'CALL create_whale_watch(%s, %s, %s)'
@@ -56,13 +56,12 @@ def __check_watches(conn, watch):
     user_id = get_user_id_from_name(conn, user_name)
 
     if watch == WatchType.PRICE:
-        sql_str = 'SELECT `base_currency`, `base_amount`, `target_currency` FROM `price_watch` '
+        sql = 'CALL get_activated_price_watches(%s)'
         watch_str = ' price '
     else:
-        sql_str = 'SELECT `currency`, `alert_amount` FROM `whale_watch` '
+        sql = 'CALL get_activated_whale_watches(%s)'
         watch_str = ' whale '
 
-    sql = sql_str + 'WHERE `watcher_id` = %s AND `criteria_met` = 1'
     with conn.cursor() as cursor:
         cursor.execute(sql, (user_id))
         results = cursor.fetchall()
@@ -77,15 +76,14 @@ def __delete_watch(conn, watch):
     user_id = get_user_id_from_name(conn, user_name)
 
     if watch == WatchType.PRICE:
-        sql_str = 'SELECT `id`, `base_currency`, `base_amount`, `target_currency` FROM `price_watch` '
-        table = ' `price_watch` '
+        sql = 'CALL get_price_watches_for_user(%s)'
+        table = '`price_watch`'
         watch_str = ' price '
     else:
-        sql_str = 'SELECT `id`, `currency`, `alert_amount` FROM `whale_watch` '
-        table = ' `whale_watch` '
+        sql = 'CALL get_whale_watches_for_user(%s)'
+        table = '`whale_watch`'
         watch_str = ' whale '
 
-    sql = sql_str + 'WHERE `watcher_id` = %s'
     with conn.cursor() as cursor:
         cursor.execute(sql, (user_id))
         results = cursor.fetchall()
@@ -103,13 +101,11 @@ def __delete_watch(conn, watch):
             while answer < 0 or answer > curr_idx:
                 print('Invalid input. Please try again.')
                 answer = int(input('> '))
-            if answer == 0:
-                id_to_delete = user_id
-                sql = 'DELETE FROM' + table + 'WHERE `watcher_id` = %s'
-            else:
-                id_to_delete = idx_to_id[answer]
-                sql = 'DELETE FROM' + table + 'WHERE `id` = %s'
-            cursor.execute(sql, (id_to_delete))
+
+            id_to_delete = idx_to_id[answer] if answer != 0 else user_id
+            id_type = '`id`' if answer != 0 else '`watcher_id`'
+            sql = 'CALL delete_watches(%s, %s, %s)'
+            cursor.execute(sql, (id_to_delete, table, id_type))
             conn.commit()
             print('\nSuccessfully deleted' + watch_str + 'watch')
         else:
