@@ -7,6 +7,7 @@ import pymysql
 import sys
 
 from watches import WatchType, watch_sub_prompt
+from checkCurrency import curr_check_prompt
 
 SERVER = 'localhost'
 DB     = 'cryptotracker'
@@ -74,6 +75,8 @@ def menu_prompt(conn):
         return watch_sub_prompt(conn, WatchType.PRICE)
     elif answer == 2:
         return watch_sub_prompt(conn, WatchType.WHALE)
+    elif answer == 3:
+        return curr_check_prompt(conn)
     elif answer == 5:
         return True
 

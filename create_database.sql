@@ -268,3 +268,15 @@ BEGIN
     DEALLOCATE PREPARE stmt;
 END//
 DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE check_prices(
+    IN curr1 VARCHAR(10),
+    IN curr2 VARCHAR(10)
+)
+BEGIN
+    SELECT `price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`
+    FROM `price_history`
+    WHERE `base` = curr1 AND `target` = curr2;
+END//
+DELIMITER ;
