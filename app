@@ -26,7 +26,7 @@ def prompt_username_pw():
     return (username, password)
 
 def import_data(connection, file_name):
-    imported_from = file_name.split("_")[0]
+    imported_from = file_name.split("/")[2].split("_")[0]
     row_num = 0
     print('Importing data from: ' + file_name)
     with open(file_name, 'r') as csvfile:
@@ -38,12 +38,12 @@ def import_data(connection, file_name):
                     row_num += 1
                     continue
                 # Create a new record
-                sql = 'CALL write_price_history(%s, %s, %s, %s, %s, %s, %s)'
+                sql = 'CALL write_price_history(%s, %s, %s, %s, %s, %s, %s, %s)'
                 pair = row[1]
                 # TODO not all currencies will be 3 letter abbrevs, figure out a way to fix
                 base = pair[3:]
                 target = pair[:3]
-                cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5]))
+                cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5], imported_from))
                 row_num += 1
             connection.commit()
             print((row_num - 2), 'records imported.')

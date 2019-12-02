@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS price_history (
     low        INT NOT NULL,
     day_open   INT NOT NULL,
     day_close  INT NOT NULL,
+    data_source   VARCHAR(30),
     CONSTRAINT history_base_fk FOREIGN KEY (base) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT history_target_fk FOREIGN KEY (target) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
 );
@@ -77,7 +78,8 @@ CREATE PROCEDURE write_price_history(
     IN high       INT,
     IN low        INT,
     IN day_open   INT,
-    IN day_close  INT
+    IN day_close  INT,
+    IN data_source     VARCHAR(30)
 )
 BEGIN
     INSERT INTO `price_history` (
@@ -87,7 +89,8 @@ BEGIN
         `high`,
         `low`,
         `day_open`,
-        `day_close`
+        `day_close`,
+        `data_source`
     ) VALUES (
         price_date,
         base,
@@ -95,7 +98,8 @@ BEGIN
         high,
         low,
         day_open,
-        day_close
+        day_close,
+        data_source
     );
 END//
 DELIMITER ;
@@ -272,12 +276,13 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE check_prices(
     IN curr1 VARCHAR(10),
-    IN curr2 VARCHAR(10)
+    IN curr2 VARCHAR(10),
+    IN data_from VARCHAR(30)
 )
 BEGIN
-    SELECT `price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`
+    SELECT `price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`, `data_source`
     FROM `price_history`
-    WHERE `base` = curr1 AND `target` = curr2
+    WHERE `base` = curr1 AND `target` = curr2 and `data_source` = data_from
     ORDER BY `price_date` DESC
     LIMIT 10;
 END//
