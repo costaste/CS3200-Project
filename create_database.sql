@@ -279,6 +279,6 @@ BEGIN
     FROM `price_history`
     WHERE `base` = curr1 AND `target` = curr2
     ORDER BY `price_date` DESC
-    LIMIT 10
+    LIMIT 10;
 END//
 DELIMITER ;

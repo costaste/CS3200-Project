@@ -26,6 +26,7 @@ def prompt_username_pw():
     return (username, password)
 
 def import_data(connection, file_name):
+    imported_from = file_name.split("_")[0]
     row_num = 0
     print('Importing data from: ' + file_name)
     with open(file_name, 'r') as csvfile:
