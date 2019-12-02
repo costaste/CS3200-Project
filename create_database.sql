@@ -277,6 +277,8 @@ CREATE PROCEDURE check_prices(
 BEGIN
     SELECT `price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`
     FROM `price_history`
-    WHERE `base` = curr1 AND `target` = curr2;
+    WHERE `base` = curr1 AND `target` = curr2
+    ORDER BY `price_date` DESC
+    LIMIT 10
 END//
 DELIMITER ;
