@@ -8,6 +8,10 @@ CREATE TABLE IF NOT EXISTS currencies (
     name   VARCHAR(64)
 );
 
+CREATE TABLE IF NOT EXISTS exchanges (
+    name VARCHAR(256) PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS price_history (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     price_date DATE NOT NULL,
@@ -17,15 +21,10 @@ CREATE TABLE IF NOT EXISTS price_history (
     low        INT NOT NULL,
     day_open   INT NOT NULL,
     day_close  INT NOT NULL,
-    data_source   VARCHAR(30),
+    data_source   VARCHAR(256),
     CONSTRAINT history_base_fk FOREIGN KEY (base) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT history_target_fk FOREIGN KEY (target) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS exchanges (
-    name    VARCHAR(256) PRIMARY KEY,
-    website VARCHAR(256),
-    country VARCHAR(256)
+    CONSTRAINT history_target_fk FOREIGN KEY (target) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT history_exchange_fk FOREIGN KEY (data_source) REFERENCES exchanges (name) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -115,6 +114,23 @@ BEGIN
         day_close,
         data_source
     );
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE add_exchange(
+    IN exchange_name VARCHAR(256)
+)
+BEGIN
+    DECLARE found VARCHAR(256);
+    SELECT `name` INTO found FROM `exchanges` WHERE `name` = exchange_name;
+    IF found IS NULL THEN
+        INSERT INTO `exchanges` (
+            `name`
+        ) VALUES (
+            exchange_name
+        );
+    END IF;
 END//
 DELIMITER ;
 

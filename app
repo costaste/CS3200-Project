@@ -37,9 +37,9 @@ def import_data(connection, file_name):
                 # Create a new record
                 sql = 'CALL write_price_history(%s, %s, %s, %s, %s, %s, %s, %s)'
                 pair = row[1]
-                # TODO not all currencies will be 3 letter abbrevs, figure out a way to fix
                 base = pair[3:]
                 target = pair[:3]
+                cursor.execute('CALL add_exchange(%s)', (imported_from))
                 cursor.execute(sql, (row[0], base, target, row[3], row[4], row[2], row[5], imported_from))
                 row_num += 1
             connection.commit()
