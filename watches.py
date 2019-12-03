@@ -88,17 +88,17 @@ def __delete_watch(conn, watch):
     with conn.cursor() as cursor:
         cursor.execute(sql, (user_id))
         results = cursor.fetchall()
-        row_ids = []
+        row_idxs = []
         if results:
             curr_idx = 1
             idx_to_id = {}
             for r in results:
                 watch_id = r.pop('id', None)
                 idx_to_id[curr_idx] = watch_id
-                row_ids.append(curr_idx)
+                row_idxs.append(curr_idx)
                 curr_idx += 1
 
-            print(tabulate(results, headers='keys', tablefmt='psql', showindex=row_ids))
+            print(tabulate(results, headers='keys', tablefmt='psql', showindex=row_idxs))
             print('\nEnter number of' + watch_str + 'watch to delete, or 0 for all')
             answer = int(input('> '))
             while answer < 0 or answer > curr_idx:

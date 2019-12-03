@@ -9,6 +9,7 @@ import sys
 from watches import WatchType, watch_sub_prompt
 from checkCurrency import curr_check_prompt
 from trades import trade_sub_prompt
+from bex import bex_sub_prompt
 
 SERVER = 'localhost'
 DB     = 'cryptotracker'
@@ -58,13 +59,14 @@ def menu_prompt(conn):
     prompt += '2. Create\Check\Delete whale watch\n'
     prompt += '3. View information about a currency\n'
     prompt += '4. Enter a trade\n'
-    prompt += '5. Exit\n'
+    prompt += '5. Seach an address, transaction, or block on a block explorer\n'
+    prompt += '6. Exit\n'
     prompt += 'Please enter the number of the menu option you wish to complete: \n'
 
     print(prompt)
     answer = int(input('> '))
 
-    while answer < 1 or answer > 5:
+    while answer < 1 or answer > 6:
         print('\nInvalid input. Please try again.')
         print(prompt)
         answer = int(input('> '))
@@ -78,6 +80,8 @@ def menu_prompt(conn):
     elif answer == 4:
         return trade_sub_prompt(conn)
     elif answer == 5:
+        return bex_sub_prompt(conn)
+    elif answer == 6:
         return True
 
 
