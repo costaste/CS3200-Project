@@ -15,5 +15,5 @@ Currently this is only run locally and with data downloaded manually from that s
 - Clone this repository
 - Run the `create_database.sql` file that's in the root directory of this repository
 - Navigate to this repository's directory in your terminal app of preference
-- Run `./app` and sign in with whichever user you've added to you local MySql server
+- Run `./app` or `python app` and sign in with whichever user you've added to you local MySql server
 - That's it!
