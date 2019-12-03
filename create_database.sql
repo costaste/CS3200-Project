@@ -55,18 +55,16 @@ CREATE TABLE IF NOT EXISTS whale_watch (
 );
 
 CREATE TABLE IF NOT EXISTS trade (
-	id 				INT AUTO_INCREMENT PRIMARY KEY,
-    user_id 		INT NOT NULL,
-    buyer_id		INT NOT NULL,
-    seller_id 		INT NOT NULL,
-	base_currency   VARCHAR(10) NOT NULL DEFAULT 'USD',
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    buyer_id        INT NOT NULL,
+    seller_id       INT NOT NULL,
+    base_currency   VARCHAR(10) NOT NULL DEFAULT 'USD',
     target_currency VARCHAR(10) NOT NULL,
-    base_amount		INT NOT NULL,
-    target_amount	INT NOT NULL,
-    CONSTRAINT trade_user_fk FOREIGN KEY (user_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    base_amount     INT NOT NULL,
+    target_amount   INT NOT NULL,
     CONSTRAINT trade_buyer_fk FOREIGN KEY (buyer_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT trade_seller_fk FOREIGN KEY (seller_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	CONSTRAINT trade_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT trade_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT trade_target_fk FOREIGN KEY (target_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
@@ -300,32 +298,62 @@ END//
 DELIMITER ;
 
 DELIMITER //
- CREATE TRIGGER check_trade_meets_watch AFTER INSERT
- ON trade
- FOR EACH ROW
- BEGIN
- 
- DECLARE currency_watched VARCHAR(10);
- DECLARE amount_watched INT;
- 
- SELECT currency, alert_amount
- INTO currency_watched, amount_watched
- FROM whale_watch
- WHERE currency = trade.base_currency OR currency = trade.target_currency;
- 
- 
- IF (currency_watched = trade.base_currency) THEN 
-	IF (trade.base_amount >= alert_amount)
-		THEN UPDATE whale_watch
-		SET criteria_met = 1
-		WHERE watcher_id = trade.buyer_id AND currency = trade.base_currency;
-		END IF;
- ELSEIF (currency_watched = trade.target_currency) THEN 
-	IF (trade.target_amount >= alert_amount)
-		THEN UPDATE whale_watch
-		SET criteria_met = 1
-		WHERE watcher_id = trade.seller_id AND currency = trade.target_currency;
+CREATE PROCEDURE create_trade(
+    IN buyer_id        INT,
+    IN seller_id       INT,
+    IN base_currency   VARCHAR(10),
+    IN target_currency VARCHAR(10),
+    IN base_amount     INT,
+    IN target_amount   INT
+)
+BEGIN
+    INSERT INTO `trade` (
+        `buyer_id`,
+        `seller_id`,
+        `base_currency`,
+        `target_currency`,
+        `base_amount`,
+        `target_amount`
+    ) VALUES (
+        buyer_id,
+        seller_id,
+        base_currency,
+        target_currency,
+        base_amount,
+        target_amount
+    );
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER check_trade_meets_watch AFTER INSERT
+ON trade
+FOR EACH ROW
+BEGIN
+    DECLARE currency_watched VARCHAR(10);
+    DECLARE watch_id INT;
+    DECLARE amount_watched INT;
+    DECLARE row_not_found TINYINT DEFAULT FALSE;
+    DECLARE watches_cursor CURSOR FOR
+        SELECT id, currency, alert_amount
+        FROM whale_watch
+        WHERE currency = NEW.base_currency OR currency = NEW.target_currency;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET row_not_found = TRUE;
+    OPEN watches_cursor;
+
+    WHILE row_not_found = FALSE DO
+        FETCH watches_cursor INTO watch_id, currency_watched, amount_watched;
+        IF (currency_watched = NEW.base_currency) AND (NEW.base_amount >= amount_watched) THEN
+                UPDATE whale_watch
+                SET criteria_met = 1
+                WHERE id = watch_id;
+        ELSEIF (currency_watched = NEW.target_currency) AND (NEW.target_amount >= amount_watched) THEN
+                UPDATE whale_watch
+                SET criteria_met = 1
+                WHERE id = watch_id;
         END IF;
-END IF;
+    END WHILE;
+    CLOSE watches_cursor;
 END //
 DELIMITER ;
