@@ -8,14 +8,11 @@ import sys
 
 from watches import WatchType, watch_sub_prompt
 from checkCurrency import curr_check_prompt
+from trades import trade_sub_prompt
 
 SERVER = 'localhost'
 DB     = 'cryptotracker'
 
-# TODO
-#   - menu options 3 & 4
-# NOTES:
-#   - can use a trigger to set price watch criteria_met to 1
 
 def connect_db(username, pw):
     return pymysql.connect(host=SERVER, user=username, password=pw, db=DB, port=3306, cursorclass=pymysql.cursors.DictCursor)
@@ -78,6 +75,8 @@ def menu_prompt(conn):
         return watch_sub_prompt(conn, WatchType.WHALE)
     elif answer == 3:
         return curr_check_prompt(conn)
+    elif answer == 4:
+        return trade_sub_prompt(conn)
     elif answer == 5:
         return True
 
