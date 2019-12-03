@@ -8,9 +8,9 @@ All data was taken for free from [http://www.cryptodatadownload.com/](http://www
 Currently this is only run locally and with data downloaded manually from that site. At some point it'd be an improvement to host this database and use an API to fetch the data
 
 ## Setup & Run
-- Install Python [here](https://www.python.org/downloads/](https://www.python.org/downloads/)) or use your OS's package manager
-- Install PyMySql using pip [(docs)](https://pymysql.readthedocs.io/en/latest/user/installation.html](https://pymysql.readthedocs.io/en/latest/user/installation.html))
-- Install MySql [here](https://www.mysql.com/downloads/](https://www.mysql.com/downloads/))
+- Install Python [here](https://www.python.org/downloads/) or use your OS's package manager
+- Install PyMySql using pip [(docs)](https://pymysql.readthedocs.io/en/latest/user/installation.html)
+- Install MySql [here](https://www.mysql.com/downloads/)
 - Install Tabulate using pip [(docs)](https://pypi.org/project/tabulate/)
 - Clone this repository
 - Run the `create_database.sql` file that's in the root directory of this repository
