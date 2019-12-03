@@ -2,14 +2,17 @@ from utils import get_user_id_from_name
 from tabulate import tabulate
 
 def curr_check_prompt(conn):
-	check_answer = 0
-	while check_answer < 1 or check_answer > 2:
-		prompt = 'Which currency pair would you like to check?\n'
-		prompt += '1. BTC in USD\n'
-		prompt += '2. USD in BTC\n'
-		print(prompt)
-		check_answer = int(input('> '))
-		if check_answer < 1 or check_answer > 2:
+	curr1 = ""
+	curr2 = ""
+	valid_curr = ["USD", "BTC", "EUR", "ETH", "XRP", "LTC", "XMR"]
+	while curr1 not in valid_curr:
+		curr1 = (input('Enter the base currency: '))
+		if curr1 not in valid_curr:
+			print('\nInvalid input. Please try again.')
+
+	while curr2 not in valid_curr:
+		curr2 = (input('Enter the target currency: '))
+		if curr2 not in valid_curr:
 			print('\nInvalid input. Please try again.')
 
 	source_answer = 0
@@ -31,14 +34,10 @@ def curr_check_prompt(conn):
 
 	source = source_dict[source_answer]
 
-	if check_answer == 1:
-		__check_curr(conn, 'BTC', 'USD', source)
-		return False
-	elif check_answer == 2:
-		__check_curr(conn, 'USD', 'BTC', source)
-		return False
-	else:
-		return False
+
+	__check_curr(conn, curr1, curr2, source)
+	return False
+
 
 def __check_curr(conn, curr1, curr2, source):
 
