@@ -8,7 +8,7 @@ def validate_currency(connection, currency):
                 return True, curr['abbrev']
             elif curr['name'].lower() == currency.lower():
                 return True, curr['name']
-        return False
+        return False, ''
 
 def get_user_id_from_name(conn, name):
     with conn.cursor() as cursor:

@@ -1,4 +1,5 @@
 from enum import Enum
+from tabulate import tabulate
 
 from utils import validate_currency, get_user_id_from_name
 
@@ -67,7 +68,7 @@ def __check_watches(conn, watch):
         results = cursor.fetchall()
         if results:
             print('\nActivated' + watch_str + 'watches:')
-            print(*results)
+            print(tabulate(results, headers='keys', tablefmt='psql'))
         else:
             print('\nNo' + watch_str + 'watches were activated')
 
@@ -87,15 +88,17 @@ def __delete_watch(conn, watch):
     with conn.cursor() as cursor:
         cursor.execute(sql, (user_id))
         results = cursor.fetchall()
+        row_ids = []
         if results:
             curr_idx = 1
             idx_to_id = {}
             for r in results:
                 watch_id = r.pop('id', None)
                 idx_to_id[curr_idx] = watch_id
-                print(str(curr_idx) + ':', r)
+                row_ids.append(curr_idx)
                 curr_idx += 1
 
+            print(tabulate(results, headers='keys', tablefmt='psql', showindex=row_ids))
             print('\nEnter number of' + watch_str + 'watch to delete, or 0 for all')
             answer = int(input('> '))
             while answer < 0 or answer > curr_idx:
@@ -113,12 +116,18 @@ def __delete_watch(conn, watch):
 
 def __whale_input(conn):
     currency = input('Please enter the currency to whale watch: ')
-    alert_amt = int(input('Please enter the alert limit for the whale watch: '))
+    alert_amt = input('Please enter the alert limit for the whale watch: ')
+
     valid_curr, stored_curr = validate_currency(conn, currency)
-    valid_alert = alert_amt > 0
+    try:
+        alert_amt = int(alert_amt)
+        valid_alert = alert_amt > 0
+    except:
+        valid_alert = False
 
     # Use stored values to prevent capitalization errors
     currency = stored_curr if valid_curr else currency
+    alert_amt = alert_amt if not valid_alert else int(alert_amt)
 
     valid = valid_curr and valid_alert
     inputs = (currency, alert_amt)
@@ -127,11 +136,15 @@ def __whale_input(conn):
 def __price_input(conn):
     base = input('Please enter the base currency (currency that the target currency will be denominated in): ')
     target = input('Please enter the target currency (currency you want to watch): ')
-    base_amount = int(input('Please enter the base currency amount: '))
+    base_amount = input('Please enter the base currency amount: ')
 
     valid_base, stored_base = validate_currency(conn, base)
     valid_target, stored_targ = validate_currency(conn, target)
-    valid_base_amt = base_amount > 0
+    try:
+        base_amount = int(base_amount)
+        valid_base_amt = base_amount > 0
+    except:
+        valid_base_amt = False
 
     # Use stored values to prevent capitalization errors
     base = stored_base if valid_base else base
