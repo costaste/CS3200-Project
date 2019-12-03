@@ -287,3 +287,33 @@ BEGIN
     LIMIT 10;
 END//
 DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE check_prices_all(
+    IN curr1 VARCHAR(10),
+    IN curr2 VARCHAR(10)
+)
+BEGIN
+    SELECT `price_date`, `base`, `target`, `high`, `low`, `day_open`, `day_close`, `data_source`
+    FROM `price_history`
+    WHERE `base` = curr1 AND `target` = curr2
+    ORDER BY `price_date` DESC
+    LIMIT 10;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE check_prices_avg(
+    IN curr1 VARCHAR(10),
+    IN curr2 VARCHAR(10)
+)
+BEGIN
+    SELECT `price_date` AS 'Date', `base` AS 'Base', `target` AS 'Target',
+    avg(`high`) as 'Average High', avg(`low`) AS 'Average Low', avg(`day_open`) AS 'Average Open', avg(`day_close`) as 'Average Close'
+    FROM `price_history`
+    WHERE `base` = curr1 AND `target` = curr2
+    GROUP BY `price_date`
+    ORDER BY `price_date` DESC
+    LIMIT 10;
+END//
+DELIMITER ;
