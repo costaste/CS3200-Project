@@ -161,6 +161,10 @@ CREATE PROCEDURE create_price_watch(
     IN base_amount   INT
 )
 BEGIN
+    DECLARE met TINYINT;
+
+    SELECT check_price_watch_criteria(base, target, base_amount) INTO met;
+
     INSERT INTO `price_watch` (
         `watcher_id`,
         `base_currency`,
@@ -172,7 +176,7 @@ BEGIN
         base,
         target,
         base_amount,
-        0
+        met
     );
 END//
 DELIMITER ;
@@ -200,22 +204,16 @@ DELIMITER ;
 
 DELIMITER //
 CREATE FUNCTION check_price_watch_criteria(
-    pwid INT
+    base       VARCHAR(10),
+    target     VARCHAR(10),
+    base_amt   INT
 )
 RETURNS TINYINT
 DETERMINISTIC CONTAINS SQL
 BEGIN
-    DECLARE base VARCHAR(10);
-    DECLARE target VARCHAR(10);
-    DECLARE base_amt INT;
     DECLARE history_id INT;
 
-    SELECT `base_currency`, `target_currency`, `base_amount`
-    INTO base, target, base_amt
-    FROM `price_watch`
-    WHERE `id` = pwid;
-
-    SELECT `id`
+    SELECT MIN(`id`)
     INTO history_id
     FROM `price_history`
     WHERE `base` = base AND `target` = target AND `high` >= base_amt AND `low` <= base_amt;
