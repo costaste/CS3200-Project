@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS exchanges (
     name VARCHAR(256) PRIMARY KEY
 );
 
+CREATE TABLE IF NOT EXISTS bexes (
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(256),
+    search_url VARCHAR(256)
+);
+
 CREATE TABLE IF NOT EXISTS price_history (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     price_date DATE NOT NULL,
@@ -81,6 +87,9 @@ INSERT INTO currencies (abbrev, name) VALUES
     ('LTC', 'Litecoin'),
     ('XMR', 'Monero');
 
+INSERT INTO bexes (name, search_url) VALUES
+    ('Blockchain', 'https://www.blockchain.com/search?search=');
+
 -- PROCEDURES/FUNCTIONS/TRIGGERS ----------------------------------------------
 
 DELIMITER //
@@ -145,6 +154,22 @@ DELIMITER //
 CREATE PROCEDURE get_currencies()
 BEGIN
     SELECT * FROM `currencies`;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_bexes()
+BEGIN
+    SELECT `id`, `name` FROM `bexes`;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_bex_search_url(
+    IN bex_id INT
+)
+BEGIN
+    SELECT `search_url` FROM `bexes` WHERE `id` = bex_id;
 END//
 DELIMITER ;
 
