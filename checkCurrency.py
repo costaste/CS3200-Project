@@ -53,7 +53,7 @@ def __check_curr(conn, curr1, curr2, source):
 				'high': 'High', 'low': 'Low', 'day_open': 'Open',
 				'day_close': 'Close', 'data_source': 'Source'}, tablefmt = 'psql'))
 			else:
-				print('\nNo results.')
+				print('\nNo results from any source for the given currency pair.')
 
 		elif source != "Average":
 			sql = 'CALL check_prices(%s, %s, %s)'
@@ -65,7 +65,7 @@ def __check_curr(conn, curr1, curr2, source):
 				'high': 'High', 'low': 'Low', 'day_open': 'Open',
 				'day_close': 'Close', 'data_source': 'Source'}, tablefmt = 'psql'))
 			else:
-				print('\nNo results.')
+				print('\nNo results from that source for the given currency pair.')
 
 		elif source == "Average":
 			sql = 'CALL check_prices_avg(%s, %s)'
@@ -74,5 +74,5 @@ def __check_curr(conn, curr1, curr2, source):
 			if results:
 				print(tabulate(results, headers="keys", tablefmt = 'psql'))
 			else:
-				print('\nNo results.')
+				print('\nNo results from any source for the given currency pair.')
 
