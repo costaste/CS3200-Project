@@ -54,6 +54,22 @@ CREATE TABLE IF NOT EXISTS whale_watch (
     CONSTRAINT wwatch_curr_fk FOREIGN KEY (currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS trade (
+	id 				INT AUTO_INCREMENT PRIMARY KEY,
+    user_id 		INT NOT NULL,
+    buyer_id		INT NOT NULL,
+    seller_id 		INT NOT NULL,
+	base_currency   VARCHAR(10) NOT NULL DEFAULT 'USD',
+    target_currency VARCHAR(10) NOT NULL,
+    base_amount		INT NOT NULL,
+    target_amount	INT NOT NULL,
+    CONSTRAINT trade_user_fk FOREIGN KEY (user_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT trade_buyer_fk FOREIGN KEY (buyer_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT trade_seller_fk FOREIGN KEY (seller_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT trade_base_fk FOREIGN KEY (base_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT trade_target_fk FOREIGN KEY (target_currency) REFERENCES currencies (abbrev) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 -- DATA -----------------------------------------------------------------------
 
 -- Insert some starting currencies
@@ -281,4 +297,35 @@ BEGIN
     ORDER BY `price_date` DESC
     LIMIT 10;
 END//
+DELIMITER ;
+
+DELIMITER //
+ CREATE TRIGGER check_trade_meets_watch AFTER INSERT
+ ON trade
+ FOR EACH ROW
+ BEGIN
+ 
+ DECLARE currency_watched VARCHAR(10);
+ DECLARE amount_watched INT;
+ 
+ SELECT currency, alert_amount
+ INTO currency_watched, amount_watched
+ FROM whale_watch
+ WHERE currency = trade.base_currency OR currency = trade.target_currency;
+ 
+ 
+ IF (currency_watched = trade.base_currency) THEN 
+	IF (trade.base_amount >= alert_amount)
+		THEN UPDATE whale_watch
+		SET criteria_met = 1
+		WHERE watcher_id = trade.buyer_id AND currency = trade.base_currency;
+		END IF;
+ ELSEIF (currency_watched = trade.target_currency) THEN 
+	IF (trade.target_amount >= alert_amount)
+		THEN UPDATE whale_watch
+		SET criteria_met = 1
+		WHERE watcher_id = trade.seller_id AND currency = trade.target_currency;
+        END IF;
+END IF;
+END //
 DELIMITER ;
