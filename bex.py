@@ -24,6 +24,8 @@ def bex_sub_prompt(conn):
 
             bex = cursor.fetchone()
             search_url = bex['search_url']
-            search_query = input('Please enter an address, transaction, or block: ')
+            print('Please enter an address, transaction, or block')
+            print('An example, the Bitcoin genesis block: 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f')
+            search_query = input('> ')
             webbrowser.open(search_url + search_query)
             return False
