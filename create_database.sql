@@ -244,6 +244,43 @@ END//
 DELIMITER ;
 
 DELIMITER //
+CREATE PROCEDURE update_price_watch(
+    IN watch_id      INT,
+    IN base          VARCHAR(10),
+    IN target        VARCHAR(10),
+    IN base_amount   INT
+)
+BEGIN
+    DECLARE met TINYINT;
+
+    SELECT check_price_watch_criteria(base, target, base_amount) INTO met;
+
+    UPDATE `price_watch`
+    SET
+        `base_currency` = base,
+        `target_currency` = target,
+        `base_amount` = base_amount,
+        `criteria_met` = met
+    WHERE `id` = watch_id;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE update_whale_watch(
+    IN watch_id     INT,
+    IN currency     VARCHAR(10),
+    IN alert_amount INT
+)
+BEGIN
+    UPDATE `whale_watch`
+    SET
+        `currency` = currency,
+        `alert_amount` = alert_amount
+    WHERE `id` = watch_id;
+END//
+DELIMITER ;
+
+DELIMITER //
 CREATE FUNCTION check_price_watch_criteria(
     base       VARCHAR(10),
     target     VARCHAR(10),
@@ -259,7 +296,7 @@ BEGIN
     FROM `price_history`
     WHERE `base` = base AND `target` = target AND `high` >= base_amt AND `low` <= base_amt;
 
-    IF history_id = NULL THEN
+    IF history_id IS NULL THEN
         return 0;
     ELSE
         return 1;
@@ -286,6 +323,28 @@ BEGIN
     SELECT `currency`, `alert_amount`
     FROM `whale_watch`
     WHERE `watcher_id` = watcher_id AND `criteria_met` = 1;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_price_watches(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `id`, `base_currency`, `base_amount`, `target_currency`
+    FROM `price_watch`
+    WHERE `watcher_id` = watcher_id;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE get_whale_watches(
+    IN watcher_id INT
+)
+BEGIN
+    SELECT `id`, `currency`, `alert_amount`
+    FROM `whale_watch`
+    WHERE `watcher_id` = watcher_id;
 END//
 DELIMITER ;
 

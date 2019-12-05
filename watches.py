@@ -22,7 +22,10 @@ def watch_sub_prompt(conn, watch):
         __create_watch(conn, watch)
         return False
     elif sub_answer == 2:
-        __check_watches(conn, watch)
+        user_id = __check_watches(conn, watch)
+        update = input('Would you like to update your watches? (y/n): ')
+        if update == 'y':
+            __update_watches(conn, watch, user_id)
         return False
     else:
         __delete_watch(conn, watch)
@@ -71,6 +74,50 @@ def __check_watches(conn, watch):
             print(tabulate(results, headers='keys', tablefmt='psql'))
         else:
             print('\nNo' + watch_str + 'watches were activated')
+    return user_id
+
+def __update_watches(conn, watch, user_id):
+    if watch == WatchType.PRICE:
+        sql = 'CALL get_price_watches(%s)'
+        watch_str = ' price '
+    else:
+        sql = 'CALL get_whale_watches(%s)'
+        watch_str = ' whale '
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (user_id))
+        results = cursor.fetchall()
+        if results:
+            idx_to_id = {}
+            row_idxs = []
+            for idx, r in enumerate(results):
+                watch_id = r.pop('id', None)
+                idx_to_id[idx] = watch_id
+                row_idxs.append(idx)
+            print(tabulate(results, headers='keys', tablefmt='psql', showindex=row_idxs))
+
+            print('\nEnter number of' + watch_str + 'watch to update')
+            answer = int(input('> '))
+            while answer not in row_idxs:
+                print('Invalid input. Please try again.')
+                answer = int(input('> '))
+
+            id_to_update = idx_to_id[answer]
+            valid = False
+            while not valid:
+                if watch == WatchType.PRICE:
+                    valid, inputs = __price_input(conn)
+                    sql = 'CALL update_price_watch(%s, %s, %s, %s)'
+                else:
+                    valid, inputs = __whale_input(conn)
+                    sql = 'CALL update_whale_watch(%s, %s, %s)'
+                if not valid:
+                    print('Invalid values received. Please try again.')
+            inputs = (id_to_update,) + inputs
+            cursor.execute(sql, inputs)
+            conn.commit()
+            print('Successfully updated watch.')
+        else:
+            print('\nNo' + watch_str + 'watches set.')
 
 def __delete_watch(conn, watch):
     user_name = input('Please enter your name: ')
